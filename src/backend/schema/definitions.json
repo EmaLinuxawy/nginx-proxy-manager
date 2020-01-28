@@ -9,6 +9,13 @@
       "type": "integer",
       "minimum": 1
     },
+    "setting_id": {
+      "description": "Unique identifier for a Setting",
+      "example": "default-site",
+      "readOnly": true,
+      "type": "string",
+      "minLength": 2
+    },
     "token": {
       "type": "string",
       "minLength": 10
@@ -172,6 +179,11 @@
         "pattern": "^(?:\\*\\.)?(?:[^.*]+\\.?)+[^.]$"
       }
     },
+    "enabled": {
+      "description": "Is Enabled",
+      "example": true,
+      "type": "boolean"
+    },
     "ssl_enabled": {
       "description": "Is SSL Enabled",
       "example": true,
@@ -179,6 +191,16 @@
     },
     "ssl_forced": {
       "description": "Is SSL Forced",
+      "example": false,
+      "type": "boolean"
+    },
+    "hsts_enabled": {
+      "description": "Is HSTS Enabled",
+      "example": false,
+      "type": "boolean"
+    },
+    "hsts_subdomains": {
+      "description": "Is HSTS applicable to all subdomains",
       "example": false,
       "type": "boolean"
     },

@@ -1,5 +1,3 @@
-'use strict';
-
 const Mn                   = require('backbone.marionette');
 const App                  = require('../../main');
 const DeadHostModel        = require('../../../models/dead-host');
@@ -22,6 +20,8 @@ module.exports = Mn.View.extend({
         save:               'button.save',
         certificate_select: 'select[name="certificate_id"]',
         ssl_forced:         'input[name="ssl_forced"]',
+        hsts_enabled:       'input[name="hsts_enabled"]',
+        hsts_subdomains:    'input[name="hsts_subdomains"]',
         http2_support:      'input[name="http2_support"]',
         letsencrypt:        '.letsencrypt'
     },
@@ -36,11 +36,44 @@ module.exports = Mn.View.extend({
             }
 
             let enabled = id === 'new' || parseInt(id, 10) > 0;
-            this.ui.ssl_forced.add(this.ui.http2_support)
+
+            let inputs = this.ui.ssl_forced.add(this.ui.http2_support);
+            inputs
                 .prop('disabled', !enabled)
                 .parents('.form-group')
                 .css('opacity', enabled ? 1 : 0.5);
-            this.ui.http2_support.prop('disabled', !enabled);
+
+            if (!enabled) {
+                inputs.prop('checked', false);
+            }
+
+            inputs.trigger('change');
+        },
+
+        'change @ui.ssl_forced': function () {
+            let checked = this.ui.ssl_forced.prop('checked');
+            this.ui.hsts_enabled
+                .prop('disabled', !checked)
+                .parents('.form-group')
+                .css('opacity', checked ? 1 : 0.5);
+
+            if (!checked) {
+                this.ui.hsts_enabled.prop('checked', false);
+            }
+
+            this.ui.hsts_enabled.trigger('change');
+        },
+
+        'change @ui.hsts_enabled': function () {
+            let checked = this.ui.hsts_enabled.prop('checked');
+            this.ui.hsts_subdomains
+                .prop('disabled', !checked)
+                .parents('.form-group')
+                .css('opacity', checked ? 1 : 0.5);
+
+            if (!checked) {
+                this.ui.hsts_subdomains.prop('checked', false);
+            }
         },
 
         'click @ui.save': function (e) {
@@ -55,13 +88,10 @@ module.exports = Mn.View.extend({
             let data = this.ui.form.serializeJSON();
 
             // Manipulate
-            if (typeof data.ssl_forced !== 'undefined' && data.ssl_forced === '1') {
-                data.ssl_forced = true;
-            }
-
-            if (typeof data.http2_support !== 'undefined') {
-                data.http2_support = !!data.http2_support;
-            }
+            data.hsts_enabled    = !!data.hsts_enabled;
+            data.hsts_subdomains = !!data.hsts_subdomains;
+            data.http2_support   = !!data.http2_support;
+            data.ssl_forced      = !!data.ssl_forced;
 
             if (typeof data.domain_names === 'string' && data.domain_names) {
                 data.domain_names = data.domain_names.split(',');
@@ -83,7 +113,7 @@ module.exports = Mn.View.extend({
 
                 data.meta.letsencrypt_agree = data.meta.letsencrypt_agree === '1';
             } else {
-                data.certificate_id = parseInt(data.certificate_id, 0);
+                data.certificate_id = parseInt(data.certificate_id, 10);
             }
 
             let method = App.Api.Nginx.DeadHosts.create;
